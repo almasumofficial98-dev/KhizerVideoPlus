@@ -29,6 +29,7 @@ class KhizerVideoPlusApp {
 
     // Stepper Navigation Elements
     this.stepItems = document.querySelectorAll('.step-item');
+    this.mobileNavItems = document.querySelectorAll('.mobile-bottom-nav .nav-item');
     this.wizardSteps = document.querySelectorAll('.wizard-step');
 
     // Step 1 Elements
@@ -107,6 +108,14 @@ class KhizerVideoPlusApp {
       });
     });
 
+    // Mobile Bottom Navigation
+    this.mobileNavItems.forEach(item => {
+      item.addEventListener('click', () => {
+        const stepNum = parseInt(item.dataset.step, 10);
+        this.goToStep(stepNum);
+      });
+    });
+
     // Wizard Navigation Buttons
     this.toStep2Btn.addEventListener('click', () => this.goToStep(2));
     this.backToStep1Btn.addEventListener('click', () => this.goToStep(1));
@@ -179,6 +188,16 @@ class KhizerVideoPlusApp {
         item.classList.add('active');
       } else if (stepIdx < stepNum) {
         item.classList.add('completed');
+      }
+    });
+
+    // Update Mobile Bottom Navigation Bar
+    this.mobileNavItems.forEach((item, idx) => {
+      const stepIdx = idx + 1;
+      if (stepIdx === stepNum) {
+        item.classList.add('active');
+      } else {
+        item.classList.remove('active');
       }
     });
 
