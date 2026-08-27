@@ -45,6 +45,7 @@ class KhizerVideoPlusApp {
     this.exportBtn = document.getElementById('exportBtn');
 
     // Controls
+    this.presetSelect = document.getElementById('presetSelect');
     this.aspectSelect = document.getElementById('aspectSelect');
     this.kenBurnsToggle = document.getElementById('kenBurnsToggle');
     this.kenBurnsIntensity = document.getElementById('kenBurnsIntensity');
@@ -97,6 +98,13 @@ class KhizerVideoPlusApp {
     this.sampleBtn.addEventListener('click', () => this.loadSampleDemo());
 
     // Controls Binding
+    this.presetSelect.addEventListener('change', (e) => {
+      const presetKey = e.target.value;
+      this.renderEngine.setPreset(presetKey);
+      this.aspectSelect.value = this.renderEngine.currentAspect;
+      this.showToast(`Selected Export Preset: ${this.renderEngine.presets[presetKey].name}`, 'info');
+    });
+
     this.aspectSelect.addEventListener('change', (e) => {
       this.renderEngine.setAspectRatio(e.target.value);
     });

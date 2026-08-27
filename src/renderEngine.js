@@ -8,6 +8,14 @@ export class RenderEngine {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
 
+    // Presets for Export Targets
+    this.presets = {
+      'youtube': { name: 'YouTube Video (16:9)', aspect: '16:9', width: 1920, height: 1080 },
+      'shorts':  { name: 'YouTube Shorts (9:16)', aspect: '9:16', width: 1080, height: 1920 },
+      'status':  { name: 'Mobile Status / Reels (9:16)', aspect: '9:16', width: 1080, height: 1920 },
+      'square':  { name: 'Square Status (1:1)', aspect: '1:1', width: 1080, height: 1080 }
+    };
+
     // Preset Aspect Ratios
     this.aspectRatios = {
       '16:9': { width: 1920, height: 1080 },
@@ -15,6 +23,7 @@ export class RenderEngine {
       '1:1':  { width: 1080, height: 1080 }
     };
 
+    this.currentPreset = 'youtube';
     this.currentAspect = '16:9';
     this.canvasWidth = 1920;
     this.canvasHeight = 1080;
@@ -29,6 +38,18 @@ export class RenderEngine {
     this.subtitleFontSize = 42;
 
     this.updateCanvasResolution();
+  }
+
+  setPreset(presetKey) {
+    if (this.presets[presetKey]) {
+      this.currentPreset = presetKey;
+      const target = this.presets[presetKey];
+      this.currentAspect = target.aspect;
+      this.canvasWidth = target.width;
+      this.canvasHeight = target.height;
+      this.canvas.width = target.width;
+      this.canvas.height = target.height;
+    }
   }
 
   setAspectRatio(aspectKey) {

@@ -81,12 +81,25 @@ def main():
     parser.add_argument("--audio", required=True, help="Path to input audio/voiceover file")
     parser.add_argument("--images", nargs="+", required=True, help="List of screenshot/image file paths")
     parser.add_argument("--output", default="output_video.mp4", help="Output MP4 file path")
+    parser.add_argument("--preset", choices=["youtube", "shorts", "status", "square"], default="youtube", help="Target preset: youtube (16:9), shorts (9:16), status (9:16), square (1:1)")
     parser.add_argument("--fps", type=int, default=30, help="Frames per second (default: 30)")
-    parser.add_argument("--width", type=int, default=1920, help="Video width (default: 1920)")
-    parser.add_argument("--height", type=int, default=1080, help="Video height (default: 1080)")
+    parser.add_argument("--width", type=int, default=None, help="Video width (overrides preset if set)")
+    parser.add_argument("--height", type=int, default=None, help="Video height (overrides preset if set)")
     parser.add_argument("--zoom", action="store_true", default=False, help="Enable Ken Burns zoom/pan effect (disabled by default)")
 
     args = parser.parse_args()
+
+    # Preset dimension resolution
+    preset_dims = {
+        "youtube": (1920, 1080),
+        "shorts":  (1080, 1920),
+        "status":  (1080, 1920),
+        "square":  (1080, 1080)
+    }
+
+    w, h = preset_dims.get(args.preset, (1920, 1080))
+    width = args.width if args.width else w
+    height = args.height if args.height else h
 
     if not os.path.exists(args.audio):
         print(f"Error: Audio file '{args.audio}' does not exist.")
@@ -110,8 +123,8 @@ def main():
     ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
 
     # Pre-process base PIL images
-    print("[*] Processing & fitting screenshots...")
-    base_imgs = [resize_and_contain(Image.open(p).convert("RGB"), args.width, args.height) for p in args.images]
+    print(f"[*] Processing & fitting screenshots for preset '{args.preset}' ({width}x{height})...")
+    base_imgs = [resize_and_contain(Image.open(p).convert("RGB"), width, height) for p in args.images]
 
     # Output video pipe via ffmpeg
     cmd = [
@@ -119,7 +132,7 @@ def main():
         "-y",
         "-f", "rawvideo",
         "-vcodec", "rawvideo",
-        "-s", f"{args.width}x{args.height}",
+        "-s", f"{width}x{height}",
         "-pix_fmt", "rgb24",
         "-r", str(args.fps),
         "-i", "-",
@@ -146,7 +159,7 @@ def main():
         # Render frame (apply zoom motion if requested)
         current_img = base_imgs[slide_idx]
         if args.zoom:
-            frame_img = apply_ken_burns(current_img, progress, scale_factor=0.12, width=args.width, height=args.height)
+            frame_img = apply_ken_burns(current_img, progress, scale_factor=0.12, width=width, height=height)
         else:
             frame_img = current_img
 

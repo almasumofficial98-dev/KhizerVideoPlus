@@ -68,7 +68,8 @@ export class VideoExporter {
       recorder.onstop = () => {
         audioStreamDest.stop();
         const blob = new Blob(recordedChunks, { type: mimeType });
-        resolve({ blob, filename: `KhizerVideoPlus_${Date.now()}.${mimeType.includes('mp4') ? 'mp4' : 'webm'}` });
+        const presetTag = this.renderEngine.currentPreset || 'video';
+        resolve({ blob, filename: `KhizerVideoPlus_${presetTag}_${Date.now()}.${mimeType.includes('mp4') ? 'mp4' : 'webm'}` });
       };
 
       recorder.onerror = (err) => {

@@ -141,13 +141,24 @@
         </div>
       </div>
 
+      <!-- Target Format Preset -->
+      <div class="setting-group">
+        <label class="setting-label" for="presetSelect">Export Video Target</label>
+        <select id="presetSelect" class="select-input">
+          <option value="youtube">🎬 YouTube Standard Video (16:9 - 1920x1080)</option>
+          <option value="shorts">⚡ YouTube Shorts (9:16 - 1080x1920)</option>
+          <option value="status">📱 Mobile Status & Reels (9:16 - 1080x1920)</option>
+          <option value="square">🔳 Square Status / Post (1:1 - 1080x1080)</option>
+        </select>
+      </div>
+
       <!-- Aspect Ratio -->
       <div class="setting-group">
-        <label class="setting-label" for="aspectSelect">Aspect Ratio</label>
+        <label class="setting-label" for="aspectSelect">Aspect Ratio Customizer</label>
         <select id="aspectSelect" class="select-input">
-          <option value="16:9">16:9 (Landscape - YouTube/Presentation)</option>
-          <option value="9:16">9:16 (Vertical - TikTok / Shorts / Reels)</option>
-          <option value="1:1">1:1 (Square - Instagram / Post)</option>
+          <option value="16:9">16:9 (Landscape)</option>
+          <option value="9:16">9:16 (Vertical)</option>
+          <option value="1:1">1:1 (Square)</option>
         </select>
       </div>
 
