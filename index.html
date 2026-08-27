@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KhizerVideoPlus - Audio-Synced Screenshot Video Creator</title>
-  <meta name="description" content="Split audio duration across N screenshots, apply Ken Burns zoom/pan, crossfades, subtitles, and export exact audio length videos.">
+  <title>KhizerVideoPlus - Step-by-Step Audio-Synced Video Creator</title>
+  <meta name="description" content="Step-by-step video creator: Select format, upload audio, upload screenshots, preview & export.">
   <link rel="stylesheet" href="./src/style.css">
 </head>
 <body>
@@ -20,200 +20,311 @@
       </div>
       <div>
         <div class="brand-title">KhizerVideoPlus</div>
-        <div class="brand-subtitle">Audio-Synced Video Creator</div>
+        <div class="brand-subtitle">Step-by-Step Video Creator</div>
+      </div>
+    </div>
+
+    <!-- Stepper Progress Bar -->
+    <div class="stepper-container">
+      <div class="step-item active" data-step="1">
+        <span class="step-num">1</span>
+        <span class="step-label">Select Scale</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="step-item" data-step="2">
+        <span class="step-num">2</span>
+        <span class="step-label">Upload Audio</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="step-item" data-step="3">
+        <span class="step-num">3</span>
+        <span class="step-label">Upload Pictures</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="step-item" data-step="4">
+        <span class="step-num">4</span>
+        <span class="step-label">Preview & Export</span>
       </div>
     </div>
 
     <div class="header-actions">
-      <button id="sampleBtn" class="btn btn-accent">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-        Load Sample Demo
-      </button>
-      <button id="exportBtn" class="btn btn-primary">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-        Export Video (MP4)
+      <button id="sampleBtn" class="btn btn-accent" title="Generate 1-click test demo">
+        ⚡ Quick Demo
       </button>
     </div>
   </header>
 
-  <!-- Main Application Container Grid -->
-  <main class="app-container">
+  <!-- Main Wizard Container -->
+  <main class="wizard-container">
 
-    <!-- Left Panel: Assets & Slide Timeline -->
-    <section class="glass-panel">
-      <div class="panel-header">
-        <div class="panel-title">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13M9 9l12-2"/></svg>
-          1. Voiceover Audio
-        </div>
-      </div>
-
-      <!-- Audio Dropzone -->
-      <input type="file" id="audioFileInput" accept="audio/*" style="display: none;">
-      <div id="audioDropzone" class="dropzone" id="audioDropzone">
-        <div class="dropzone-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
-        </div>
-        <div class="dropzone-title">Upload Audio / Voiceover</div>
-        <div class="dropzone-hint">Supports MP3, WAV, M4A, OGG</div>
-      </div>
-
-      <!-- Active Audio File Card -->
-      <div id="audioCard" class="audio-card" style="display: none;">
-        <div class="audio-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-        </div>
-        <div class="audio-details">
-          <div id="audioName" class="audio-name">Audio_File.mp3</div>
-          <div id="audioMeta" class="audio-meta">Duration: --</div>
-        </div>
-      </div>
-
-      <!-- Screenshots Dropzone -->
-      <div class="panel-header" style="margin-top: 0.5rem;">
-        <div class="panel-title">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-          2. N Screenshots / Images
-        </div>
-        <span id="slideCountBadge" class="badge badge-accent">0 Slides</span>
-      </div>
-
-      <input type="file" id="imagesFileInput" accept="image/*" multiple style="display: none;">
-      <div id="imagesDropzone" class="dropzone">
-        <div class="dropzone-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        </div>
-        <div class="dropzone-title">Upload N Screenshots</div>
-        <div class="dropzone-hint">PNG, JPG, WebP (Select multiple)</div>
-      </div>
-
-      <!-- Reorderable Slide List -->
-      <div id="slidesList" class="slides-container">
-        <!-- Dynamically rendered slide cards -->
-      </div>
-    </section>
-
-    <!-- Center Studio Panel: Realtime Video Player -->
-    <section class="glass-panel preview-panel">
-      <div class="canvas-wrapper">
-        <canvas id="videoCanvas" width="1920" height="1080"></canvas>
-        <div class="canvas-watermark">
-          <span class="status-dot"></span>
-          Realtime Audio-Synced Canvas Preview
-        </div>
-      </div>
-
-      <!-- Timeline & Scrubber Controls Bar -->
-      <div class="player-controls">
-        <div class="scrubber-container">
-          <span id="timeDisplay" class="time-display">00:00 / 00:00</span>
-          <input type="range" id="scrubber" class="range-slider" min="0" max="100" step="0.05" value="0">
+    <!-- STEP 1: Select Output Scale / Target Platform -->
+    <section id="step1" class="wizard-step active">
+      <div class="step-card glass-panel">
+        <div class="step-header">
+          <h2 class="step-title">Step 1: Choose Video Scale / Target Platform</h2>
+          <p class="step-desc">Select the output format and aspect ratio for your video export.</p>
         </div>
 
-        <!-- Visual Slide Segment Track -->
-        <div id="timelineTrack" class="timeline-track">
-          <div id="timelinePlayhead" class="timeline-playhead"></div>
-        </div>
-
-        <div class="controls-row">
-          <div class="btn-group">
-            <button id="playBtn" class="btn btn-secondary">
-              <span id="playBtnIcon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-              </span>
-              Play / Pause
-            </button>
+        <div class="scale-grid">
+          <!-- Preset Card: YouTube Standard -->
+          <div class="scale-card selected" data-preset="youtube" data-aspect="16:9">
+            <div class="scale-icon">🎬</div>
+            <div class="scale-info">
+              <div class="scale-name">YouTube Video</div>
+              <div class="scale-dim">16:9 Landscape (1920x1080)</div>
+              <div class="scale-desc">Standard landscape video for YouTube, Vimeo & presentations</div>
+            </div>
+            <div class="scale-radio">✓</div>
           </div>
 
-          <div style="font-size: 0.8rem; color: var(--text-muted);">
-            Audio duration automatically divided by N slides
+          <!-- Preset Card: YouTube Shorts -->
+          <div class="scale-card" data-preset="shorts" data-aspect="9:16">
+            <div class="scale-icon">⚡</div>
+            <div class="scale-info">
+              <div class="scale-name">YouTube Shorts</div>
+              <div class="scale-dim">9:16 Vertical (1080x1920)</div>
+              <div class="scale-desc">Vertical short-form video for YouTube Shorts feed</div>
+            </div>
+            <div class="scale-radio"></div>
           </div>
+
+          <!-- Preset Card: Mobile Status & Reels -->
+          <div class="scale-card" data-preset="status" data-aspect="9:16">
+            <div class="scale-icon">📱</div>
+            <div class="scale-info">
+              <div class="scale-name">Mobile Status / Reels</div>
+              <div class="scale-dim">9:16 Vertical (1080x1920)</div>
+              <div class="scale-desc">Perfect for WhatsApp Status, Instagram Reels & TikTok</div>
+            </div>
+            <div class="scale-radio"></div>
+          </div>
+
+          <!-- Preset Card: Square Status -->
+          <div class="scale-card" data-preset="square" data-aspect="1:1">
+            <div class="scale-icon">🔳</div>
+            <div class="scale-info">
+              <div class="scale-name">Square Post / Status</div>
+              <div class="scale-dim">1:1 Square (1080x1080)</div>
+              <div class="scale-desc">Universal square format for Instagram posts & feed updates</div>
+            </div>
+            <div class="scale-radio"></div>
+          </div>
+        </div>
+
+        <div class="step-footer">
+          <div></div>
+          <button id="toStep2Btn" class="btn btn-primary">
+            Next: Upload Audio ➔
+          </button>
         </div>
       </div>
     </section>
 
-    <!-- Right Sidebar: Customization Controls -->
-    <aside class="glass-panel controls-sidebar">
-      <div class="panel-header">
-        <div class="panel-title">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-          3. Video Customization
+    <!-- STEP 2: Upload Audio / Voiceover -->
+    <section id="step2" class="wizard-step">
+      <div class="step-card glass-panel">
+        <div class="step-header">
+          <h2 class="step-title">Step 2: Upload Audio / Voiceover File</h2>
+          <p class="step-desc">Upload your voiceover or audio file. The system will auto-detect its exact duration.</p>
+        </div>
+
+        <input type="file" id="audioFileInput" accept="audio/*" style="display: none;">
+        <div id="audioDropzone" class="dropzone hero-dropzone">
+          <div class="dropzone-icon hero-icon">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+          </div>
+          <div class="dropzone-title hero-title">Click or Drag & Drop Voiceover Audio File</div>
+          <div class="dropzone-hint">Supports MP3, WAV, M4A, OGG, WebM</div>
+        </div>
+
+        <!-- Active Audio File Card -->
+        <div id="audioCard" class="audio-card hero-audio-card" style="display: none;">
+          <div class="audio-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+          </div>
+          <div class="audio-details">
+            <div id="audioName" class="audio-name" style="font-size: 1.1rem;">Audio_File.mp3</div>
+            <div id="audioMeta" class="audio-meta" style="font-size: 0.85rem;">Duration: --</div>
+          </div>
+          <button id="reuploadAudioBtn" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Change File</button>
+        </div>
+
+        <div class="step-footer">
+          <button id="backToStep1Btn" class="btn btn-secondary">
+            ← Back to Scale
+          </button>
+          <button id="toStep3Btn" class="btn btn-primary" disabled>
+            Next: Upload Pictures ➔
+          </button>
         </div>
       </div>
+    </section>
 
-      <!-- Target Format Preset -->
-      <div class="setting-group">
-        <label class="setting-label" for="presetSelect">Export Video Target</label>
-        <select id="presetSelect" class="select-input">
-          <option value="youtube">🎬 YouTube Standard Video (16:9 - 1920x1080)</option>
-          <option value="shorts">⚡ YouTube Shorts (9:16 - 1080x1920)</option>
-          <option value="status">📱 Mobile Status & Reels (9:16 - 1080x1920)</option>
-          <option value="square">🔳 Square Status / Post (1:1 - 1080x1080)</option>
-        </select>
-      </div>
-
-      <!-- Aspect Ratio -->
-      <div class="setting-group">
-        <label class="setting-label" for="aspectSelect">Aspect Ratio Customizer</label>
-        <select id="aspectSelect" class="select-input">
-          <option value="16:9">16:9 (Landscape)</option>
-          <option value="9:16">9:16 (Vertical)</option>
-          <option value="1:1">1:1 (Square)</option>
-        </select>
-      </div>
-
-      <!-- Ken Burns Zoom/Pan -->
-      <div class="setting-group">
-        <div class="toggle-row">
-          <label class="setting-label" for="kenBurnsToggle" style="margin: 0;">Ken Burns Zoom / Pan Effect</label>
-          <label class="switch">
-            <input type="checkbox" id="kenBurnsToggle">
-            <span class="slider"></span>
-          </label>
+    <!-- STEP 3: Upload Screenshots / Images -->
+    <section id="step3" class="wizard-step">
+      <div class="step-card glass-panel">
+        <div class="step-header">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <h2 class="step-title">Step 3: Upload Screenshots / Images</h2>
+              <p class="step-desc">Upload N screenshots. Audio length will automatically split across them.</p>
+            </div>
+            <span id="slideCountBadge" class="badge badge-accent" style="font-size: 0.9rem; padding: 0.3rem 0.8rem;">0 Pictures Uploaded</span>
+          </div>
         </div>
-        <div style="margin-top: 0.5rem;">
-          <label class="setting-label">Zoom Motion Intensity</label>
-          <input type="range" id="kenBurnsIntensity" class="range-slider" min="0.05" max="0.30" step="0.02" value="0.15">
-        </div>
-      </div>
 
-      <!-- Transitions -->
-      <div class="setting-group">
-        <label class="setting-label" for="transitionSelect">Slide Transition</label>
-        <select id="transitionSelect" class="select-input">
-          <option value="crossfade">Crossfade (Smooth Blend)</option>
-          <option value="fade-black">Fade to Black</option>
-          <option value="slide">Slide Left</option>
-          <option value="cut">Instant Cut (No Transition)</option>
-        </select>
-        <div style="margin-top: 0.5rem;">
-          <label class="setting-label">Transition Duration (s)</label>
-          <input type="range" id="transitionDuration" class="range-slider" min="0.2" max="1.5" step="0.1" value="0.6">
+        <input type="file" id="imagesFileInput" accept="image/*" multiple style="display: none;">
+        <div id="imagesDropzone" class="dropzone hero-dropzone">
+          <div class="dropzone-icon hero-icon">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </div>
+          <div class="dropzone-title hero-title">Click or Drag & Drop Screenshots / Images</div>
+          <div class="dropzone-hint">PNG, JPG, WebP (Select multiple files)</div>
+        </div>
+
+        <!-- Reorderable Slide List -->
+        <div id="slidesList" class="slides-container" style="max-height: 320px;">
+          <!-- Dynamically rendered slide cards -->
+        </div>
+
+        <div class="step-footer">
+          <button id="backToStep2Btn" class="btn btn-secondary">
+            ← Back to Audio
+          </button>
+          <button id="toStep4Btn" class="btn btn-primary" disabled>
+            Next: Video Playback & Preview ➔
+          </button>
         </div>
       </div>
+    </section>
 
-      <!-- Fit Mode -->
-      <div class="setting-group">
-        <label class="setting-label" for="fitModeSelect">Screenshot Fit Mode</label>
-        <select id="fitModeSelect" class="select-input">
-          <option value="contain-blur">Contain + Blurred Background (Best)</option>
-          <option value="cover">Crop & Fill (Cover)</option>
-          <option value="contain-black">Contain + Solid Black Bar</option>
-        </select>
-      </div>
+    <!-- STEP 4: Video Playback & Preview Screen -->
+    <section id="step4" class="wizard-step">
+      <div class="studio-layout">
+        
+        <!-- Main Studio Video Player -->
+        <div class="glass-panel preview-panel">
+          <div class="panel-header" style="width: 100%;">
+            <div class="panel-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+              Step 4: Check Video Playback Before Render
+            </div>
+            <span id="activePresetBadge" class="badge badge-accent">YouTube (16:9)</span>
+          </div>
 
-      <!-- Subtitles -->
-      <div class="setting-group">
-        <div class="toggle-row">
-          <label class="setting-label" for="subtitleToggle" style="margin: 0;">Show Subtitle Text Overlays</label>
-          <label class="switch">
-            <input type="checkbox" id="subtitleToggle" checked>
-            <span class="slider"></span>
-          </label>
+          <div class="canvas-wrapper">
+            <canvas id="videoCanvas" width="1920" height="1080"></canvas>
+            <div class="canvas-watermark">
+              <span class="status-dot"></span>
+              Audio Playback Synced
+            </div>
+          </div>
+
+          <!-- Timeline & Controls Bar -->
+          <div class="player-controls">
+            <div class="scrubber-container">
+              <span id="timeDisplay" class="time-display">00:00 / 00:00</span>
+              <input type="range" id="scrubber" class="range-slider" min="0" max="100" step="0.05" value="0">
+            </div>
+
+            <!-- Visual Slide Segment Track -->
+            <div id="timelineTrack" class="timeline-track">
+              <div id="timelinePlayhead" class="timeline-playhead"></div>
+            </div>
+
+            <div class="controls-row">
+              <div class="btn-group">
+                <button id="playBtn" class="btn btn-secondary">
+                  <span id="playBtnIcon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                  </span>
+                  Play / Pause
+                </button>
+              </div>
+
+              <div class="btn-group">
+                <button id="backToStep3Btn" class="btn btn-secondary">
+                  ← Edit Pictures
+                </button>
+                <button id="exportBtn" class="btn btn-primary">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                  EXPORT VIDEO (MP4)
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
 
-    </aside>
+        <!-- Optional Tweak Settings Sidebar -->
+        <aside class="glass-panel controls-sidebar">
+          <div class="panel-header">
+            <div class="panel-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              Optional Video Settings
+            </div>
+          </div>
+
+          <!-- Transitions -->
+          <div class="setting-group">
+            <label class="setting-label" for="transitionSelect">Slide Transition</label>
+            <select id="transitionSelect" class="select-input">
+              <option value="crossfade">Crossfade (Smooth Blend)</option>
+              <option value="fade-black">Fade to Black</option>
+              <option value="slide">Slide Left</option>
+              <option value="cut">Instant Cut (No Transition)</option>
+            </select>
+          </div>
+
+          <!-- Fit Mode -->
+          <div class="setting-group">
+            <label class="setting-label" for="fitModeSelect">Screenshot Fit Mode</label>
+            <select id="fitModeSelect" class="select-input">
+              <option value="contain-blur">Contain + Blurred Background</option>
+              <option value="cover">Crop & Fill (Cover)</option>
+              <option value="contain-black">Contain + Solid Black Bar</option>
+            </select>
+          </div>
+
+          <!-- Ken Burns Zoom/Pan (Optional) -->
+          <div class="setting-group">
+            <div class="toggle-row">
+              <label class="setting-label" for="kenBurnsToggle" style="margin: 0;">Ken Burns Zoom Motion</label>
+              <label class="switch">
+                <input type="checkbox" id="kenBurnsToggle">
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Subtitles -->
+          <div class="setting-group">
+            <div class="toggle-row">
+              <label class="setting-label" for="subtitleToggle" style="margin: 0;">Show Subtitle Text</label>
+              <label class="switch">
+                <input type="checkbox" id="subtitleToggle" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Hidden binding selects for compatibility -->
+          <select id="presetSelect" style="display:none;">
+            <option value="youtube">youtube</option>
+            <option value="shorts">shorts</option>
+            <option value="status">status</option>
+            <option value="square">square</option>
+          </select>
+          <select id="aspectSelect" style="display:none;">
+            <option value="16:9">16:9</option>
+            <option value="9:16">9:16</option>
+            <option value="1:1">1:1</option>
+          </select>
+          <input type="range" id="kenBurnsIntensity" value="0.15" style="display:none;">
+          <input type="range" id="transitionDuration" value="0.6" style="display:none;">
+        </aside>
+
+      </div>
+    </section>
 
   </main>
 
