@@ -67,6 +67,12 @@ class KhizerVideoPlusApp {
     this.exportBtn = document.getElementById('exportBtn');
     this.backToStep3Btn = document.getElementById('backToStep3Btn');
 
+    // Intro Title Screen Inputs
+    this.introTextInput = document.getElementById('introTextInput');
+    this.introSubtitleInput = document.getElementById('introSubtitleInput');
+    this.introDurInput = document.getElementById('introDurInput');
+    this.introDurVal = document.getElementById('introDurVal');
+
     // Tweak Settings
     this.presetSelect = document.getElementById('presetSelect');
     this.aspectSelect = document.getElementById('aspectSelect');
@@ -149,6 +155,21 @@ class KhizerVideoPlusApp {
 
     // Sample Demo Generator
     this.sampleBtn.addEventListener('click', () => this.loadSampleDemo());
+
+    // Intro Title Screen Bindings
+    const updateIntro = () => {
+      const text = this.introTextInput ? this.introTextInput.value : '';
+      const sub = this.introSubtitleInput ? this.introSubtitleInput.value : '';
+      const dur = this.introDurInput ? parseFloat(this.introDurInput.value) : 2.5;
+      if (this.introDurVal) this.introDurVal.textContent = `${dur.toFixed(1)}s`;
+      this.timelineEngine.setIntroScreen(text, sub, dur);
+      this.renderTimelineTracks();
+      this.renderSlideList();
+    };
+
+    if (this.introTextInput) this.introTextInput.addEventListener('input', updateIntro);
+    if (this.introSubtitleInput) this.introSubtitleInput.addEventListener('input', updateIntro);
+    if (this.introDurInput) this.introDurInput.addEventListener('input', updateIntro);
 
     // Controls Binding
     this.transitionSelect.addEventListener('change', (e) => {

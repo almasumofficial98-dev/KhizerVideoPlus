@@ -72,7 +72,21 @@ export class RenderEngine {
    * @param {Object} timelineState - output of timelineEngine.getSlideAtTime(timestamp)
    */
   drawFrame(timelineState) {
-    if (!timelineState || !timelineState.currentSlide) {
+    if (!timelineState) {
+      this.drawPlaceholder();
+      return;
+    }
+
+    // Handle Intro Black Screen rendering
+    if (timelineState.isIntro) {
+      this.drawIntroScreen(timelineState.introText, timelineState.introSubtitle, timelineState.introProgress);
+      if (timelineState.isTransitioning && timelineState.nextSlide) {
+        this.drawSlide(timelineState.nextSlide, 0, timelineState.transitionProgress);
+      }
+      return;
+    }
+
+    if (!timelineState.currentSlide) {
       this.drawPlaceholder();
       return;
     }
@@ -265,6 +279,47 @@ export class RenderEngine {
     ctx.fillStyle = '#ffffff';
 
     ctx.fillText(text, this.canvasWidth / 2, boxY + boxH / 2, boxW - paddingX);
+
+    ctx.restore();
+  }
+
+  /**
+   * Render Solid Pitch Black Screen with Pure White Intro Title & Subtitle
+   * Centered horizontally and vertically
+   */
+  drawIntroScreen(title, subtitle, progress) {
+    const ctx = this.ctx;
+    ctx.save();
+
+    // Solid Pitch Black Background (#000000)
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
+
+    // Fade-in opacity transition
+    const textAlpha = Math.min(1.0, progress * 4.0);
+    ctx.globalAlpha = textAlpha;
+
+    const centerX = this.canvasWidth / 2;
+    const centerY = this.canvasHeight / 2;
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#ffffff'; // Pure White Text
+
+    if (subtitle && subtitle.trim()) {
+      // Title
+      ctx.font = '800 64px "Outfit", sans-serif';
+      ctx.fillText(title, centerX, centerY - 32, this.canvasWidth - 100);
+
+      // Subtitle (Pure White)
+      ctx.font = '500 32px "Outfit", sans-serif';
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(subtitle, centerX, centerY + 40, this.canvasWidth - 120);
+    } else {
+      // Single Title centered horizontally & vertically
+      ctx.font = '800 68px "Outfit", sans-serif';
+      ctx.fillText(title, centerX, centerY, this.canvasWidth - 100);
+    }
 
     ctx.restore();
   }

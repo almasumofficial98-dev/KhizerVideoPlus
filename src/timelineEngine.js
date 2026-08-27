@@ -7,6 +7,11 @@ export class TimelineEngine {
   constructor() {
     this.totalDuration = 0; // Total Audio Duration in seconds
     this.slides = []; // Array of Slide Objects
+
+    // Optional Intro Black Title Screen
+    this.introText = '';
+    this.introSubtitle = '';
+    this.introDuration = 0; // In seconds (0 = disabled)
   }
 
   /**
@@ -97,9 +102,15 @@ export class TimelineEngine {
     }
   }
 
+  setIntroScreen(text, subtitle = '', duration = 2.5) {
+    this.introText = text || '';
+    this.introSubtitle = subtitle || '';
+    this.introDuration = (this.introText.trim().length > 0 && duration > 0) ? Math.max(0, duration) : 0;
+    this.recalculateTimings();
+  }
+
   /**
    * Recalculates start_time, end_time, and duration for every slide
-   * Formula: Slide_Duration = (Total_Audio_Duration) * (Slide_Weight / Total_Weights)
    */
   recalculateTimings() {
     if (this.slides.length === 0 || this.totalDuration <= 0) {
@@ -111,16 +122,18 @@ export class TimelineEngine {
       return;
     }
 
+    const effectiveIntroDur = Math.min(this.introDuration, this.totalDuration * 0.4); // max 40% of total
+    const availableDur = Math.max(0.1, this.totalDuration - effectiveIntroDur);
+
     const totalWeight = this.slides.reduce((acc, s) => acc + s.customWeight, 0);
-    let currentTime = 0;
+    let currentTime = effectiveIntroDur;
 
     this.slides.forEach((slide, idx) => {
       slide.startTime = currentTime;
-      // If last slide, snap to exact total duration to prevent float rounding gap
       if (idx === this.slides.length - 1) {
         slide.endTime = this.totalDuration;
       } else {
-        const slideDur = (this.totalDuration * (slide.customWeight / totalWeight));
+        const slideDur = (availableDur * (slide.customWeight / totalWeight));
         slide.endTime = currentTime + slideDur;
       }
       slide.duration = slide.endTime - slide.startTime;
@@ -130,15 +143,40 @@ export class TimelineEngine {
 
   /**
    * Get active slide and slide transition progress for any timestamp t
-   * @param {number} timestamp - current time in seconds
-   * @param {number} transitionDuration - crossfade duration in seconds (e.g. 0.5s)
    */
   getSlideAtTime(timestamp, transitionDuration = 0.5) {
     if (this.slides.length === 0) return null;
 
     const t = Math.max(0, Math.min(timestamp, this.totalDuration));
 
-    // Find current slide
+    const effectiveIntroDur = Math.min(this.introDuration, this.totalDuration * 0.4);
+
+    // Check if timestamp is inside Intro Title Screen
+    if (effectiveIntroDur > 0 && t < effectiveIntroDur && this.introText.trim().length > 0) {
+      const introProgress = t / effectiveIntroDur;
+      let nextSlide = null;
+      let transitionProgress = 0;
+
+      if (effectiveIntroDur - t <= transitionDuration && this.slides.length > 0) {
+        nextSlide = this.slides[0];
+        transitionProgress = 1 - ((effectiveIntroDur - t) / transitionDuration);
+      }
+
+      return {
+        isIntro: true,
+        introText: this.introText,
+        introSubtitle: this.introSubtitle,
+        introProgress,
+        currentSlide: null,
+        currentIndex: -1,
+        nextSlide,
+        slideProgress: 0,
+        transitionProgress,
+        isTransitioning: nextSlide !== null
+      };
+    }
+
+    // Find current screenshot slide
     let currentIndex = this.slides.findIndex(s => t >= s.startTime && t <= s.endTime);
     if (currentIndex === -1) {
       currentIndex = t >= this.totalDuration ? this.slides.length - 1 : 0;
@@ -149,7 +187,6 @@ export class TimelineEngine {
       ? (t - currentSlide.startTime) / currentSlide.duration 
       : 0;
 
-    // Check if in transition zone to next slide
     let nextSlide = null;
     let transitionProgress = 0;
 
@@ -162,6 +199,7 @@ export class TimelineEngine {
     }
 
     return {
+      isIntro: false,
       currentSlide,
       currentIndex,
       nextSlide,

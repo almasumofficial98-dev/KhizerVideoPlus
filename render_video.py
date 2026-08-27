@@ -82,6 +82,9 @@ def main():
     parser.add_argument("--images", nargs="+", required=True, help="List of screenshot/image file paths")
     parser.add_argument("--output", default="output_video.mp4", help="Output MP4 file path")
     parser.add_argument("--preset", choices=["youtube", "shorts", "status", "square"], default="youtube", help="Target preset: youtube (16:9), shorts (9:16), status (9:16), square (1:1)")
+    parser.add_argument("--intro-text", default="", help="Headline text for starting intro black screen")
+    parser.add_argument("--intro-subtitle", default="", help="Subtitle/tagline for starting intro black screen")
+    parser.add_argument("--intro-duration", type=float, default=2.5, help="Duration of intro black screen in seconds (default: 2.5)")
     parser.add_argument("--fps", type=int, default=30, help="Frames per second (default: 30)")
     parser.add_argument("--width", type=int, default=None, help="Video width (overrides preset if set)")
     parser.add_argument("--height", type=int, default=None, help="Video height (overrides preset if set)")
@@ -147,21 +150,56 @@ def main():
 
     pipe = subprocess.Popen(cmd, stdin=subprocess.PIPE)
 
+    has_intro = bool(args.intro_text.strip())
+    intro_dur = min(args.intro_duration, total_duration * 0.4) if has_intro else 0.0
+    avail_dur = max(0.1, total_duration - intro_dur)
+    slide_duration = avail_dur / num_images
+
     total_frames = int(total_duration * args.fps)
     print(f"[*] Rendering {total_frames} frames to {args.output}...")
+    if has_intro:
+        print(f"[*] Intro Black Title Screen enabled for first {intro_dur:.2f}s: '{args.intro_text}'")
+
+    from PIL import ImageDraw, ImageFont
+
+    def draw_intro_frame(title, subtitle, width, height):
+        img = Image.new("RGB", (width, height), (0, 0, 0)) # Pitch Black (#000000)
+        draw = ImageDraw.Draw(img)
+        
+        try:
+            font_title = ImageFont.truetype("arial.ttf", 64)
+            font_sub = ImageFont.truetype("arial.ttf", 34)
+        except Exception:
+            font_title = ImageFont.load_default()
+            font_sub = ImageFont.load_default()
+
+        center_x = width // 2
+        center_y = height // 2
+
+        if subtitle and subtitle.strip():
+            draw.text((center_x, center_y - 32), title, fill=(255, 255, 255), font=font_title, anchor="mm")
+            draw.text((center_x, center_y + 40), subtitle, fill=(255, 255, 255), font=font_sub, anchor="mm")
+        else:
+            draw.text((center_x, center_y), title, fill=(255, 255, 255), font=font_title, anchor="mm")
+
+        return img
 
     for frame_idx in range(total_frames):
         t = frame_idx / float(args.fps)
-        slide_idx = min(int(t / slide_duration), num_images - 1)
-        slide_t_start = slide_idx * slide_duration
-        progress = (t - slide_t_start) / slide_duration
 
-        # Render frame (apply zoom motion if requested)
-        current_img = base_imgs[slide_idx]
-        if args.zoom:
-            frame_img = apply_ken_burns(current_img, progress, scale_factor=0.12, width=width, height=height)
+        if has_intro and t < intro_dur:
+            frame_img = draw_intro_frame(args.intro_text, args.intro_subtitle, width, height)
         else:
-            frame_img = current_img
+            t_slides = t - intro_dur
+            slide_idx = min(int(t_slides / slide_duration), num_images - 1)
+            slide_t_start = slide_idx * slide_duration
+            progress = (t_slides - slide_t_start) / slide_duration
+
+            current_img = base_imgs[slide_idx]
+            if args.zoom:
+                frame_img = apply_ken_burns(current_img, progress, scale_factor=0.12, width=width, height=height)
+            else:
+                frame_img = current_img
 
         # Write frame bytes to ffmpeg stdin
         frame_bytes = np.array(frame_img).tobytes()
