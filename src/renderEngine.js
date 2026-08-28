@@ -29,13 +29,22 @@ export class RenderEngine {
     this.canvasHeight = 1080;
 
     // Render Options
-    this.enableKenBurns = false; // Disabled by default; user can toggle ON if desired
-    this.kenBurnsIntensity = 0.15; // 15% zoom
-    this.transitionType = 'crossfade'; // 'crossfade', 'fade-black', 'slide', 'cut'
-    this.transitionDuration = 0.6; // 0.6 seconds
-    this.fitMode = 'contain-blur'; // 'contain-blur', 'cover', 'contain-black'
+    this.enableKenBurns = false; // Disabled by default
+    this.kenBurnsIntensity = 0.15;
+    this.transitionType = 'crossfade';
+    this.transitionDuration = 0.6;
+    this.fitMode = 'contain-blur';
     this.showSubtitles = true;
-    this.subtitleFontSize = 42;
+
+    // Modern Subtitle Style Presets (No Neon!)
+    this.subtitleStyle = 'yellow-box'; // 'yellow-box', 'dark-pill', 'bold-shadow'
+    this.subtitleFont = 'Outfit'; // 'Outfit', 'Montserrat', 'Impact', 'Caveat'
+    this.subtitleFontSize = 44;
+
+    // Watermark Logo
+    this.logoImg = null;
+    this.logoPosition = 'bottom-right'; // 'top-right', 'bottom-right', 'top-left', 'bottom-left'
+    this.logoOpacity = 0.85;
 
     this.updateCanvasResolution();
   }
@@ -77,12 +86,20 @@ export class RenderEngine {
       return;
     }
 
-    // Handle Intro Black Screen rendering
+    // Handle Intro Black Screen
     if (timelineState.isIntro) {
       this.drawIntroScreen(timelineState.introText, timelineState.introSubtitle, timelineState.introProgress);
       if (timelineState.isTransitioning && timelineState.nextSlide) {
         this.drawSlide(timelineState.nextSlide, 0, timelineState.transitionProgress);
       }
+      this.drawWatermarkLogo();
+      return;
+    }
+
+    // Handle Outro Black Screen
+    if (timelineState.isOutro) {
+      this.drawIntroScreen(timelineState.outroText, timelineState.outroSubtitle, timelineState.outroProgress);
+      this.drawWatermarkLogo();
       return;
     }
 
@@ -151,6 +168,9 @@ export class RenderEngine {
         this.drawSubtitleText(activeSlide.subtitle);
       }
     }
+
+    // Draw Watermark Logo if uploaded
+    this.drawWatermarkLogo();
   }
 
   /**
@@ -250,7 +270,8 @@ export class RenderEngine {
     ctx.save();
 
     const fontSize = this.subtitleFontSize;
-    ctx.font = `600 ${fontSize}px "Outfit", sans-serif`;
+    const fontName = this.subtitleFont || 'Outfit';
+    ctx.font = `700 ${fontSize}px "${fontName}", sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
@@ -264,22 +285,63 @@ export class RenderEngine {
     const boxX = (this.canvasWidth - boxW) / 2;
     const boxY = this.canvasHeight - marginBottom - boxH;
 
-    // Dark glass pill background
-    ctx.fillStyle = 'rgba(10, 12, 20, 0.85)';
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
-    ctx.lineWidth = 2;
+    if (this.subtitleStyle === 'yellow-box') {
+      // Modern High-Contrast Yellow Box (Viral Shorts Style)
+      ctx.fillStyle = '#facc15';
+      this.drawRoundedRect(ctx, boxX, boxY, boxW, boxH, 12);
+      ctx.fill();
 
-    this.drawRoundedRect(ctx, boxX, boxY, boxW, boxH, 16);
-    ctx.fill();
-    ctx.stroke();
+      ctx.fillStyle = '#000000';
+      ctx.fillText(text, this.canvasWidth / 2, boxY + boxH / 2, boxW - paddingX);
+    } else if (this.subtitleStyle === 'bold-shadow') {
+      // Clean Bold White with Drop Shadow
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+      ctx.shadowBlur = 12;
+      ctx.shadowOffsetX = 2;
+      ctx.shadowOffsetY = 2;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(text, this.canvasWidth / 2, boxY + boxH / 2, this.canvasWidth - 80);
+    } else {
+      // Standard Dark Pill
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.lineWidth = 1.5;
+      this.drawRoundedRect(ctx, boxX, boxY, boxW, boxH, 16);
+      ctx.fill();
+      ctx.stroke();
 
-    // High contrast white text with soft shadow
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-    ctx.shadowBlur = 8;
-    ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(text, this.canvasWidth / 2, boxY + boxH / 2, boxW - paddingX);
+    }
 
-    ctx.fillText(text, this.canvasWidth / 2, boxY + boxH / 2, boxW - paddingX);
+    ctx.restore();
+  }
 
+  /**
+   * Draw Brand Logo / Watermark Overlay
+   */
+  drawWatermarkLogo() {
+    if (!this.logoImg || !this.logoImg.complete) return;
+
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.globalAlpha = this.logoOpacity;
+
+    const logoW = 120;
+    const logoH = (this.logoImg.naturalHeight / this.logoImg.naturalWidth) * logoW || 50;
+    const padding = 30;
+
+    let x = padding;
+    let y = padding;
+
+    if (this.logoPosition.includes('right')) {
+      x = this.canvasWidth - logoW - padding;
+    }
+    if (this.logoPosition.includes('bottom')) {
+      y = this.canvasHeight - logoH - padding;
+    }
+
+    ctx.drawImage(this.logoImg, x, y, logoW, logoH);
     ctx.restore();
   }
 

@@ -67,11 +67,34 @@ class KhizerVideoPlusApp {
     this.exportBtn = document.getElementById('exportBtn');
     this.backToStep3Btn = document.getElementById('backToStep3Btn');
 
+    // Audio Waveform Canvas
+    this.waveformCanvas = document.getElementById('waveformCanvas');
+
     // Intro Title Screen Inputs
     this.introTextInput = document.getElementById('introTextInput');
     this.introSubtitleInput = document.getElementById('introSubtitleInput');
     this.introDurInput = document.getElementById('introDurInput');
     this.introDurVal = document.getElementById('introDurVal');
+
+    // Outro Screen Inputs
+    this.outroTextInput = document.getElementById('outroTextInput');
+    this.outroSubtitleInput = document.getElementById('outroSubtitleInput');
+    this.outroDurInput = document.getElementById('outroDurInput');
+    this.outroDurVal = document.getElementById('outroDurVal');
+
+    // Subtitle Style & Font Inputs
+    this.subtitleStyleSelect = document.getElementById('subtitleStyleSelect');
+    this.subtitleFontSelect = document.getElementById('subtitleFontSelect');
+
+    // Watermark Logo Inputs
+    this.uploadLogoBtn = document.getElementById('uploadLogoBtn');
+    this.logoFileInput = document.getElementById('logoFileInput');
+    this.logoBadge = document.getElementById('logoBadge');
+    this.logoPosSelect = document.getElementById('logoPosSelect');
+
+    // Export Quality & FPS Inputs
+    this.exportQualitySelect = document.getElementById('exportQualitySelect');
+    this.exportFpsSelect = document.getElementById('exportFpsSelect');
 
     // Tweak Settings
     this.presetSelect = document.getElementById('presetSelect');
@@ -171,6 +194,57 @@ class KhizerVideoPlusApp {
     if (this.introSubtitleInput) this.introSubtitleInput.addEventListener('input', updateIntro);
     if (this.introDurInput) this.introDurInput.addEventListener('input', updateIntro);
 
+    // Outro Screen Bindings
+    const updateOutro = () => {
+      const text = this.outroTextInput ? this.outroTextInput.value : '';
+      const sub = this.outroSubtitleInput ? this.outroSubtitleInput.value : '';
+      const dur = this.outroDurInput ? parseFloat(this.outroDurInput.value) : 0;
+      if (this.outroDurVal) this.outroDurVal.textContent = `${dur.toFixed(1)}s`;
+      this.timelineEngine.setOutroScreen(text, sub, dur);
+      this.renderTimelineTracks();
+      this.renderSlideList();
+    };
+
+    if (this.outroTextInput) this.outroTextInput.addEventListener('input', updateOutro);
+    if (this.outroSubtitleInput) this.outroSubtitleInput.addEventListener('input', updateOutro);
+    if (this.outroDurInput) this.outroDurInput.addEventListener('input', updateOutro);
+
+    // Subtitle Style & Font Bindings
+    if (this.subtitleStyleSelect) {
+      this.subtitleStyleSelect.addEventListener('change', (e) => {
+        this.renderEngine.subtitleStyle = e.target.value;
+      });
+    }
+    if (this.subtitleFontSelect) {
+      this.subtitleFontSelect.addEventListener('change', (e) => {
+        this.renderEngine.subtitleFont = e.target.value;
+      });
+    }
+
+    // Logo Upload Binding
+    if (this.uploadLogoBtn) {
+      this.uploadLogoBtn.addEventListener('click', () => this.logoFileInput.click());
+    }
+    if (this.logoFileInput) {
+      this.logoFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const img = new Image();
+          img.src = URL.createObjectURL(file);
+          img.onload = () => {
+            this.renderEngine.logoImg = img;
+            if (this.logoBadge) this.logoBadge.style.display = 'block';
+            this.showToast('Brand logo watermark uploaded!', 'success');
+          };
+        }
+      });
+    }
+    if (this.logoPosSelect) {
+      this.logoPosSelect.addEventListener('change', (e) => {
+        this.renderEngine.logoPosition = e.target.value;
+      });
+    }
+
     // Controls Binding
     this.transitionSelect.addEventListener('change', (e) => {
       this.renderEngine.transitionType = e.target.value;
@@ -267,6 +341,11 @@ class KhizerVideoPlusApp {
       this.scrubber.max = meta.duration;
       this.renderTimelineTracks();
       this.renderSlideList();
+
+      // Render Audio Waveform Visualizer
+      if (this.waveformCanvas) {
+        this.audioEngine.drawWaveform(this.waveformCanvas);
+      }
 
       // Enable Step 2 -> Step 3 button
       this.toStep3Btn.disabled = false;
@@ -430,9 +509,11 @@ class KhizerVideoPlusApp {
     this.exportProgressVal.textContent = '0%';
     this.exportStatusText.textContent = 'Encoding video matching exact audio duration...';
 
+    const fps = this.exportFpsSelect ? parseInt(this.exportFpsSelect.value, 10) : 30;
+
     try {
       const result = await this.videoExporter.exportVideo({
-        fps: 30,
+        fps,
         onProgress: (pct) => {
           this.exportProgressVal.textContent = `${pct}%`;
           const offset = 283 - (283 * pct / 100);

@@ -187,6 +187,37 @@ export class AudioEngine {
   }
 
   /**
+   * Draw Audio Waveform onto a canvas element
+   * @param {HTMLCanvasElement} canvas 
+   */
+  drawWaveform(canvas) {
+    if (!this.voiceBuffer || !canvas) return;
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width = canvas.parentElement.clientWidth || 600;
+    const height = canvas.height = 40;
+
+    const data = this.voiceBuffer.getChannelData(0);
+    const step = Math.ceil(data.length / width);
+    const amp = height / 2;
+
+    ctx.clearRect(0, 0, width, height);
+
+    ctx.fillStyle = 'rgba(79, 70, 229, 0.4)'; // Primary accent wave bar
+
+    for (let i = 0; i < width; i++) {
+      let min = 1.0;
+      let max = -1.0;
+      for (let j = 0; j < step; j++) {
+        const datum = data[(i * step) + j];
+        if (datum < min) min = datum;
+        if (datum > max) max = datum;
+      }
+      const barH = Math.max(2, (max - min) * amp);
+      ctx.fillRect(i, amp - (barH / 2), 1, barH);
+    }
+  }
+
+  /**
    * Setup a MediaStreamDestination for canvas video export with mixed audio
    */
   createStreamDestination() {

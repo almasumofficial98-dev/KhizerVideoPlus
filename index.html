@@ -12,7 +12,7 @@
 </head>
 <body class="app-body">
 
-  <!-- Mobile & Desktop Top App Bar -->
+  <!-- Top Navigation Header -->
   <header class="app-header">
     <div class="brand">
       <div class="brand-icon">
@@ -27,7 +27,7 @@
       </div>
     </div>
 
-    <!-- Stepper Bar for Tablet & Desktop -->
+    <!-- Stepper Navigation Bar -->
     <div class="stepper-container desktop-stepper">
       <div class="step-item active" data-step="1">
         <span class="step-num">1</span>
@@ -53,7 +53,7 @@
     <div class="header-actions">
       <button id="sampleBtn" class="btn btn-accent btn-sm" title="Generate 1-click test demo">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-        <span>Demo</span>
+        <span>Quick Demo</span>
       </button>
     </div>
   </header>
@@ -66,7 +66,7 @@
       <div class="app-card">
         <div class="card-header">
           <h2 class="card-title">1. Select Video Scale</h2>
-          <p class="card-subtitle">Choose format and resolution for export</p>
+          <p class="card-subtitle">Choose resolution and aspect ratio for export</p>
         </div>
 
         <div class="scale-grid">
@@ -83,7 +83,7 @@
             <div class="scale-info">
               <div class="scale-name">YouTube Video</div>
               <div class="scale-dim">16:9 Landscape • 1920x1080</div>
-              <div class="scale-desc">Standard video for YouTube & presentations</div>
+              <div class="scale-desc">Standard landscape video format</div>
             </div>
             <div class="scale-radio">✓</div>
           </div>
@@ -98,11 +98,10 @@
             <div class="scale-info">
               <div class="scale-name">YouTube Shorts</div>
               <div class="scale-dim">9:16 Vertical • 1080x1920</div>
-              <div class="scale-desc">Vertical format for YouTube Shorts feed</div>
+              <div class="scale-desc">Vertical format for YouTube Shorts</div>
             </div>
             <div class="scale-radio"></div>
           </div>
-
 
           <!-- Preset Card: Mobile Status & Reels -->
           <div class="scale-card" data-preset="status" data-aspect="9:16">
@@ -115,7 +114,7 @@
             <div class="scale-info">
               <div class="scale-name">Mobile Status / Reels</div>
               <div class="scale-dim">9:16 Vertical • 1080x1920</div>
-              <div class="scale-desc">WhatsApp Status, Instagram Reels & TikTok</div>
+              <div class="scale-desc">WhatsApp Status, Reels & TikTok</div>
             </div>
             <div class="scale-radio"></div>
           </div>
@@ -130,7 +129,7 @@
             <div class="scale-info">
               <div class="scale-name">Square Post / Status</div>
               <div class="scale-dim">1:1 Square • 1080x1080</div>
-              <div class="scale-desc">Universal square format for Instagram feed</div>
+              <div class="scale-desc">Universal square format</div>
             </div>
             <div class="scale-radio"></div>
           </div>
@@ -149,7 +148,7 @@
       <div class="app-card">
         <div class="card-header">
           <h2 class="card-title">2. Upload Audio File</h2>
-          <p class="card-subtitle">Upload voiceover audio to calculate total video length</p>
+          <p class="card-subtitle">Upload voiceover audio file to auto-calculate total length</p>
         </div>
 
         <input type="file" id="audioFileInput" accept="audio/*" style="display: none;">
@@ -201,7 +200,7 @@
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </div>
           <div class="dropzone-title">Upload Screenshots / Images</div>
-          <div class="dropzone-hint">PNG, JPG, WebP (Select multiple)</div>
+          <div class="dropzone-hint">PNG, JPG, WebP (Select multiple files)</div>
         </div>
 
         <!-- Reorderable Slide List -->
@@ -246,6 +245,11 @@
               <input type="range" id="scrubber" class="range-slider" min="0" max="100" step="0.05" value="0">
             </div>
 
+            <!-- Audio Waveform Canvas -->
+            <div style="position: relative; width: 100%; margin: 0.25rem 0;">
+              <canvas id="waveformCanvas" style="width: 100%; height: 32px; display: block; border-radius: 4px; pointer-events: none;"></canvas>
+            </div>
+
             <!-- Segment Track -->
             <div id="timelineTrack" class="timeline-track">
               <div id="timelinePlayhead" class="timeline-playhead"></div>
@@ -267,26 +271,94 @@
           </div>
         </div>
 
-        <!-- Optional Tweak Settings Sidebar -->
+        <!-- Optional Settings Sidebar -->
         <aside class="app-card controls-sidebar">
           <div class="card-header">
-            <h3 class="card-title" style="font-size: 1.05rem;">Optional Video Settings</h3>
+            <h3 class="card-title" style="font-size: 1.05rem;">Video Customization</h3>
           </div>
 
-          <!-- Intro Title Screen (Black Screen + Text) -->
-          <div class="setting-group" style="background: #f8fafc; padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
-            <div class="toggle-row">
-              <label class="setting-label" style="font-weight: 700; color: var(--accent-primary);">Intro Black Title Screen</label>
-            </div>
-            <input type="text" id="introTextInput" class="text-input" placeholder="Intro Title (e.g. Video Title)" style="margin-top: 0.3rem;">
-            <input type="text" id="introSubtitleInput" class="text-input" placeholder="Subtitle / Tagline (Optional)" style="margin-top: 0.3rem;">
+          <!-- Intro Title Screen -->
+          <div class="setting-group settings-card">
+            <label class="setting-label-bold">Intro Title Screen (Black)</label>
+            <input type="text" id="introTextInput" class="text-input" placeholder="Intro Title Text" style="margin-top: 0.3rem;">
+            <input type="text" id="introSubtitleInput" class="text-input" placeholder="Subtitle (Optional)" style="margin-top: 0.3rem;">
             <div style="margin-top: 0.4rem;">
-              <label class="setting-label">Intro Duration: <span id="introDurVal" style="font-weight:700; color:var(--accent-primary);">2.5s</span></label>
+              <label class="setting-label">Intro Duration: <span id="introDurVal" class="val-tag">2.5s</span></label>
               <input type="range" id="introDurInput" class="range-slider" min="0" max="6" step="0.5" value="2.5">
             </div>
           </div>
 
-          <!-- Transitions -->
+          <!-- Outro Title Screen -->
+          <div class="setting-group settings-card">
+            <label class="setting-label-bold">Outro End Screen (Black)</label>
+            <input type="text" id="outroTextInput" class="text-input" placeholder="Outro Title Text" style="margin-top: 0.3rem;">
+            <input type="text" id="outroSubtitleInput" class="text-input" placeholder="Subtitle / Handle" style="margin-top: 0.3rem;">
+            <div style="margin-top: 0.4rem;">
+              <label class="setting-label">Outro Duration: <span id="outroDurVal" class="val-tag">2.5s</span></label>
+              <input type="range" id="outroDurInput" class="range-slider" min="0" max="6" step="0.5" value="0">
+            </div>
+          </div>
+
+          <!-- Subtitle Style & Font Presets -->
+          <div class="setting-group">
+            <label class="setting-label" for="subtitleStyleSelect">Subtitle Style</label>
+            <select id="subtitleStyleSelect" class="select-input">
+              <option value="yellow-box">Yellow Box (High Contrast)</option>
+              <option value="dark-pill">Dark Pill Box</option>
+              <option value="bold-shadow">Bold White Text with Shadow</option>
+            </select>
+          </div>
+
+          <div class="setting-group">
+            <label class="setting-label" for="subtitleFontSelect">Subtitle Font</label>
+            <select id="subtitleFontSelect" class="select-input">
+              <option value="Outfit">Outfit (Modern Sans)</option>
+              <option value="Montserrat">Montserrat (Clean Geometry)</option>
+              <option value="Impact">Impact (Bold Title)</option>
+              <option value="Caveat">Caveat (Handwritten)</option>
+            </select>
+          </div>
+
+          <!-- Brand Logo / Watermark -->
+          <div class="setting-group settings-card">
+            <label class="setting-label-bold">Watermark Logo</label>
+            <input type="file" id="logoFileInput" accept="image/*" style="display: none;">
+            <button id="uploadLogoBtn" class="btn btn-secondary btn-sm btn-block" style="margin-top: 0.3rem;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              Upload PNG Logo
+            </button>
+            <div id="logoBadge" class="badge badge-accent" style="display: none; margin-top: 0.3rem; text-align: center;">Logo Uploaded ✓</div>
+            <div style="margin-top: 0.4rem;">
+              <label class="setting-label">Position</label>
+              <select id="logoPosSelect" class="select-input" style="padding: 0.4rem 0.6rem; min-height: 38px;">
+                <option value="bottom-right">Bottom-Right</option>
+                <option value="top-right">Top-Right</option>
+                <option value="top-left">Top-Left</option>
+                <option value="bottom-left">Bottom-Left</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Export Quality & FPS -->
+          <div class="setting-group">
+            <label class="setting-label" for="exportQualitySelect">Export Resolution</label>
+            <select id="exportQualitySelect" class="select-input">
+              <option value="1080">1080p Full HD (Default)</option>
+              <option value="4k">4K Ultra HD (3840x2160)</option>
+              <option value="720">720p HD (Small File)</option>
+            </select>
+          </div>
+
+          <div class="setting-group">
+            <label class="setting-label" for="exportFpsSelect">Export Frame Rate (FPS)</label>
+            <select id="exportFpsSelect" class="select-input">
+              <option value="30">30 FPS (Standard)</option>
+              <option value="60">60 FPS (Smooth)</option>
+              <option value="24">24 FPS (Cinematic)</option>
+            </select>
+          </div>
+
+          <!-- Slide Transitions -->
           <div class="setting-group">
             <label class="setting-label" for="transitionSelect">Slide Transition</label>
             <select id="transitionSelect" class="select-input">
@@ -307,7 +379,7 @@
             </select>
           </div>
 
-          <!-- Ken Burns Zoom/Pan -->
+          <!-- Ken Burns Zoom/Pan (Optional) -->
           <div class="setting-group">
             <div class="toggle-row">
               <label class="setting-label" for="kenBurnsToggle" style="margin: 0;">Ken Burns Zoom Motion</label>
@@ -318,7 +390,7 @@
             </div>
           </div>
 
-          <!-- Subtitles -->
+          <!-- Subtitles Toggle -->
           <div class="setting-group">
             <div class="toggle-row">
               <label class="setting-label" for="subtitleToggle" style="margin: 0;">Show Subtitles</label>

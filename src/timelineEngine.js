@@ -8,10 +8,14 @@ export class TimelineEngine {
     this.totalDuration = 0; // Total Audio Duration in seconds
     this.slides = []; // Array of Slide Objects
 
-    // Optional Intro Black Title Screen
+    // Optional Intro & Outro Black Title Screens
     this.introText = '';
     this.introSubtitle = '';
     this.introDuration = 0; // In seconds (0 = disabled)
+
+    this.outroText = '';
+    this.outroSubtitle = '';
+    this.outroDuration = 0; // In seconds (0 = disabled)
   }
 
   /**
@@ -109,6 +113,13 @@ export class TimelineEngine {
     this.recalculateTimings();
   }
 
+  setOutroScreen(text, subtitle = '', duration = 2.5) {
+    this.outroText = text || '';
+    this.outroSubtitle = subtitle || '';
+    this.outroDuration = (this.outroText.trim().length > 0 && duration > 0) ? Math.max(0, duration) : 0;
+    this.recalculateTimings();
+  }
+
   /**
    * Recalculates start_time, end_time, and duration for every slide
    */
@@ -122,16 +133,19 @@ export class TimelineEngine {
       return;
     }
 
-    const effectiveIntroDur = Math.min(this.introDuration, this.totalDuration * 0.4); // max 40% of total
-    const availableDur = Math.max(0.1, this.totalDuration - effectiveIntroDur);
+    const effectiveIntroDur = Math.min(this.introDuration, this.totalDuration * 0.3);
+    const effectiveOutroDur = Math.min(this.outroDuration, this.totalDuration * 0.3);
+    const availableDur = Math.max(0.1, this.totalDuration - effectiveIntroDur - effectiveOutroDur);
 
     const totalWeight = this.slides.reduce((acc, s) => acc + s.customWeight, 0);
     let currentTime = effectiveIntroDur;
 
+    const slidesEndBoundary = this.totalDuration - effectiveOutroDur;
+
     this.slides.forEach((slide, idx) => {
       slide.startTime = currentTime;
       if (idx === this.slides.length - 1) {
-        slide.endTime = this.totalDuration;
+        slide.endTime = slidesEndBoundary;
       } else {
         const slideDur = (availableDur * (slide.customWeight / totalWeight));
         slide.endTime = currentTime + slideDur;
@@ -149,9 +163,11 @@ export class TimelineEngine {
 
     const t = Math.max(0, Math.min(timestamp, this.totalDuration));
 
-    const effectiveIntroDur = Math.min(this.introDuration, this.totalDuration * 0.4);
+    const effectiveIntroDur = Math.min(this.introDuration, this.totalDuration * 0.3);
+    const effectiveOutroDur = Math.min(this.outroDuration, this.totalDuration * 0.3);
+    const outroStartBoundary = this.totalDuration - effectiveOutroDur;
 
-    // Check if timestamp is inside Intro Title Screen
+    // 1. Check if timestamp is inside Intro Title Screen
     if (effectiveIntroDur > 0 && t < effectiveIntroDur && this.introText.trim().length > 0) {
       const introProgress = t / effectiveIntroDur;
       let nextSlide = null;
@@ -164,6 +180,7 @@ export class TimelineEngine {
 
       return {
         isIntro: true,
+        isOutro: false,
         introText: this.introText,
         introSubtitle: this.introSubtitle,
         introProgress,
@@ -176,7 +193,25 @@ export class TimelineEngine {
       };
     }
 
-    // Find current screenshot slide
+    // 2. Check if timestamp is inside Outro Screen
+    if (effectiveOutroDur > 0 && t >= outroStartBoundary && this.outroText.trim().length > 0) {
+      const outroProgress = (t - outroStartBoundary) / effectiveOutroDur;
+      return {
+        isIntro: false,
+        isOutro: true,
+        outroText: this.outroText,
+        outroSubtitle: this.outroSubtitle,
+        outroProgress,
+        currentSlide: null,
+        currentIndex: -1,
+        nextSlide: null,
+        slideProgress: 0,
+        transitionProgress: 0,
+        isTransitioning: false
+      };
+    }
+
+    // 3. Find current screenshot slide
     let currentIndex = this.slides.findIndex(s => t >= s.startTime && t <= s.endTime);
     if (currentIndex === -1) {
       currentIndex = t >= this.totalDuration ? this.slides.length - 1 : 0;
@@ -200,6 +235,7 @@ export class TimelineEngine {
 
     return {
       isIntro: false,
+      isOutro: false,
       currentSlide,
       currentIndex,
       nextSlide,
